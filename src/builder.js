@@ -3,8 +3,8 @@ import puppeteer from "puppeteer";
 export default class Builder {
   static async build(viewport) {
     const launchOptions = {
-      headless: true,
-      slowMo: 0,
+      headless: false,
+      slowMo: 15,
       defaultViewport: null,
       args: ['--start-maximized', '--no-sandbox', '--disabel-setui-sandbox', '--disable-web-security']
     }
@@ -29,5 +29,80 @@ export default class Builder {
         default:
           throw new Error('Supported devices are only Mobile | Tablet | Desktop')
     }
+
+    return new Proxy(extendedPage, {
+      get: (target, property, receiver) => {
+        if (target[property]) {
+          return target[property];
+        }
+
+        let value = browser[property];
+        if (value instanceof Function) {
+          return function (...args) {
+            return value.apply(this === receiver ? browser : this, args);
+          };
+        }
+
+        value = page[property];
+        if (value instanceof Function) {
+          return function (...args) {
+            return value.apply(this === receiver ? page : this, args);
+          };
+        }
+
+        return value;
+      },
+    });
   } 
+
+  constructor(page) {
+    this.page = page
+  }
+
+  async waitAndClick(selector) {
+    await this.page.waitForSelector(selector)
+    await this.page.click(selector)
+  }
+
+  async waitAndType(selector, text) {
+    await this.page.waitForSelector(selector)
+    await this.page.type(selector, text)
+  }
+
+  async getText(selector) {
+    await this.page.waitForSelector(selector)
+    const text = await this.page.$eval(selector, e => e.innerHTML)
+    return text
+  }
+
+  async getCount(selector) {
+    await this.page.waitForSelector(selector)
+    const count = await this.page.$$eval(selector, items => items.length)
+    return count
+  }
+
+  async waitFotXPathAndClick(xpath) {
+    await this.page.waitForXPath(xpath)
+    const elements = await this.page.$x(xpath)
+    if(elements.length > 1) {
+      console.warn('waitForXPathAndClick returned more than 1 result')
+    }
+    await elements[0].click()
+  }
+
+  async isElementVisible(selector) {
+    let visible = true
+    await this.page.waitForSelector(selector, { visible: true, timeout: 3000}).catch(() => {
+      visible = false
+    })
+    return visible
+  }
+
+  async isXPathVisible(selector) {
+    let visible = true
+    await this.page.waitForXPath(selector, {visible: true, timeout: 3000}).catch(() => {
+      visible = false
+    })
+    return visible
+  }
 }

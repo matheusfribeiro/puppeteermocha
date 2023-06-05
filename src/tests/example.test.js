@@ -1,38 +1,29 @@
 import { step } from "mocha-steps"
-import puppeteer from "puppeteer"
+//import puppeteer from "puppeteer"
+import Page from "../builder"
 
 describe('Mocha steps demo', () => {
-  let browser
+  //let browser
   let page
+  
 
   before(async () => {
-    browser = await puppeteer.launch({
-      headless: false,
-      slowMo: 25,
-      defaultViewport: null,
-      args: ['--start-maximized']
-    })
-    page = await browser.newPage()
-    await page.setDefaultTimeout(7000)
+    //browser = await puppeteer.launch({headless: false,slowMo: 25,defaultViewport: null,args: ['--start-maximized']})
+    page = await Page.build('Desktop')
+    
+    //await page.setDefaultTimeout(7000)
   })
 
   after(async () => {
-    await browser.close()
+    await page.close()
+    
   })
 
   step('should load google homepage', async () => {
-    await page.goto('https://google.com')
+    await page.goto('http://zero.webappsecurity.com/')
+    await page.waitAndClick('#onlineBankingMenu')
+    await new Promise(r => setTimeout(r, 5000))
   })
 
-  step('step 2 should fail', async () => {
-    await page.waitForSelector('#fail')
-  })
-
-  step('step 3', async () => {
-    console.log('from step 3')
-  })
-
-  step('step 4', async () => {
-    console.log('from step 4')
-  })
+  
 })
