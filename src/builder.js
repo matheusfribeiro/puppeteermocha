@@ -5,8 +5,11 @@ export default class Builder {
     const launchOptions = {
       headless: false,
       slowMo: 15,
-      defaultViewport: null,
-      args: ['--start-maximized', '--no-sandbox', '--disabel-setui-sandbox', '--disable-web-security']
+      args: [
+        '--start-maximized', 
+        '--no-sandbox', 
+        '--disabel-setui-sandbox', 
+        '--disable-web-security']
     }
 
     const browser = await puppeteer.launch(launchOptions)

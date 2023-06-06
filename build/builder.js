@@ -21,7 +21,6 @@ var Builder = function () {
       var launchOptions = {
         headless: false,
         slowMo: 15,
-        defaultViewport: null,
         args: ['--start-maximized', '--no-sandbox', '--disabel-setui-sandbox', '--disable-web-security']
       };
 
@@ -97,6 +96,52 @@ var Builder = function () {
     value: async function waitAndType(selector, text) {
       await this.page.waitForSelector(selector);
       await this.page.type(selector, text);
+    }
+  }, {
+    key: 'getText',
+    value: async function getText(selector) {
+      await this.page.waitForSelector(selector);
+      var text = await this.page.$eval(selector, function (e) {
+        return e.innerHTML;
+      });
+      return text;
+    }
+  }, {
+    key: 'getCount',
+    value: async function getCount(selector) {
+      await this.page.waitForSelector(selector);
+      var count = await this.page.$$eval(selector, function (items) {
+        return items.length;
+      });
+      return count;
+    }
+  }, {
+    key: 'waitFotXPathAndClick',
+    value: async function waitFotXPathAndClick(xpath) {
+      await this.page.waitForXPath(xpath);
+      var elements = await this.page.$x(xpath);
+      if (elements.length > 1) {
+        console.warn('waitForXPathAndClick returned more than 1 result');
+      }
+      await elements[0].click();
+    }
+  }, {
+    key: 'isElementVisible',
+    value: async function isElementVisible(selector) {
+      var visible = true;
+      await this.page.waitForSelector(selector, { visible: true, timeout: 3000 }).catch(function () {
+        visible = false;
+      });
+      return visible;
+    }
+  }, {
+    key: 'isXPathVisible',
+    value: async function isXPathVisible(selector) {
+      var visible = true;
+      await this.page.waitForXPath(selector, { visible: true, timeout: 3000 }).catch(function () {
+        visible = false;
+      });
+      return visible;
     }
   }]);
 
